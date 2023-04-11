@@ -49,9 +49,7 @@ def index(request):
 
 
 def post_detail(request, slug):
-    #post = Post.objects.get(slug=slug)
     post = Post.objects.filter(slug=slug).comments().popular()[0]
-    print(post)
 
     comments = Comment.objects.filter(post=post)
     serialized_comments = []
@@ -62,7 +60,7 @@ def post_detail(request, slug):
             'author': comment.author.username,
         })
 
-    related_tags = post.tags.all()
+    related_tags = post.tags.popular()
 
     serialized_post = {
         'title': post.title,
@@ -73,7 +71,7 @@ def post_detail(request, slug):
         'image_url': post.image.url if post.image else None,
         'published_at': post.published_at,
         'slug': post.slug,
-        'tags': [serialize_tag(tag) for tag in related_tags],
+        'tags': [serialize_tag_optimized(tag) for tag in related_tags],
     }
 
 
@@ -82,7 +80,7 @@ def post_detail(request, slug):
 
     context = {
         'post': serialized_post,
-        'popular_tags': [serialize_tag(tag) for tag in most_popular_tags],
+        'popular_tags': [serialize_tag_optimized(tag) for tag in most_popular_tags],
         'most_popular_posts': [
             serialize_post_optimized(post) for post in most_popular_posts
         ],
