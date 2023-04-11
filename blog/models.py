@@ -42,12 +42,12 @@ class TagQuerySet(models.QuerySet):
     def popular(self):
         most_popular_tags = Tag.objects.annotate(num_posts=Count('posts')).order_by('-num_posts')
         return most_popular_tags
-
-        # ids_and_posts = most_popular_tags.values_list('id', 'num_posts')
-        # count_for_posts = dict(ids_and_posts)
-        # for tag in most_popular_tags:
-        #     tag.num_posts = count_for_posts[tag.id]
-        # return most_popular_tags
+    def fetch_with_posts(self):
+        ids_and_posts = self.values_list('id', 'num_posts')
+        count_for_posts = dict(ids_and_posts)
+        for tag in self:
+            tag.num_posts = count_for_posts[tag.id]
+        return self
 
 
 class Post(models.Model):
