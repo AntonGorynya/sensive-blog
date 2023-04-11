@@ -10,37 +10,37 @@ class PostQuerySet(models.QuerySet):
         return posts_at_year
 
     def fresh(self):
-        most_fresh_posts = Post.objects.annotate(comments_count=Count('comments')).order_by(
+        most_fresh_posts = self.annotate(comments_count=Count('comments')).order_by(
             '-published_at')
         return most_fresh_posts
-    # def fetch
-    #     ids_and_comments = most_fresh_posts.values_list('id', 'comments_count')
-    #     count_for_comments = dict(ids_and_comments)
-    #     for post in most_fresh_posts:
-    #         post.comments_count = count_for_comments[post.id]
-    #     return most_fresh_posts
+
     def popular(self):
-        posts_with_likes = Post.objects.annotate(likes_count=Count('likes')).order_by('-likes_count')
+        posts_with_likes = self.annotate(likes_count=Count('likes', distinct=True)).order_by('-likes_count')
         return posts_with_likes
 
+    def comments(self):
+        ids = [post.id for post in self]
+        posts_with_comments = Post.objects.filter(id__in=ids).annotate(comments_count=Count('comments'))
+        return posts_with_comments
+
     def fetch_with_comments_count(self):
-        posts_with_likes = self
-        most_popular_posts_ids = [post.id for post in posts_with_likes]
-        posts_with_comments = Post.objects.filter(id__in=most_popular_posts_ids).annotate(
-            comments_count=Count('comments'))
-        ids_and_comments = posts_with_comments.values_list('id', 'comments_count')
-        ids_and_likes = posts_with_likes.values_list('id', 'likes_count')
+        ids_and_comments = self.values_list('id', 'comments_count')
         count_for_comments = dict(ids_and_comments)
-        count_for_likes = dict(ids_and_likes)
-        for post in posts_with_likes:
+        for post in self:
             post.comments_count = count_for_comments[post.id]
+        return self
+
+    def fetch_likes_count(self):
+        ids_and_likes = self.values_list('id', 'likes_count')
+        count_for_likes = dict(ids_and_likes)
+        for post in self:
             post.likes_count = count_for_likes[post.id]
-        return posts_with_likes
+        return self
 
 
 class TagQuerySet(models.QuerySet):
     def popular(self):
-        most_popular_tags = Tag.objects.annotate(num_posts=Count('posts')).order_by('-num_posts')
+        most_popular_tags = self.annotate(num_posts=Count('posts')).order_by('-num_posts')
         return most_popular_tags
     def fetch_with_posts(self):
         ids_and_posts = self.values_list('id', 'num_posts')
