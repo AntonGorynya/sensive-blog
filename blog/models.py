@@ -11,15 +11,20 @@ class PostQuerySet(models.QuerySet):
 
     def fresh(self):
         most_fresh_posts = Post.objects.annotate(comments_count=Count('comments')).order_by(
-            '-published_at').prefetch_related('author')
-        ids_and_comments = most_fresh_posts.values_list('id', 'comments_count')
-        count_for_comments = dict(ids_and_comments)
-        for post in most_fresh_posts:
-            post.comments_count = count_for_comments[post.id]
+            '-published_at')
         return most_fresh_posts
+    # def fetch
+    #     ids_and_comments = most_fresh_posts.values_list('id', 'comments_count')
+    #     count_for_comments = dict(ids_and_comments)
+    #     for post in most_fresh_posts:
+    #         post.comments_count = count_for_comments[post.id]
+    #     return most_fresh_posts
     def popular(self):
-        posts_with_likes = Post.objects.annotate(likes_count=Count('likes')).order_by('-likes_count').prefetch_related(
-            'author')
+        posts_with_likes = Post.objects.annotate(likes_count=Count('likes')).order_by('-likes_count')
+        return posts_with_likes
+
+    def fetch_with_comments_count(self):
+        posts_with_likes = self
         most_popular_posts_ids = [post.id for post in posts_with_likes]
         posts_with_comments = Post.objects.filter(id__in=most_popular_posts_ids).annotate(
             comments_count=Count('comments'))
@@ -36,11 +41,13 @@ class PostQuerySet(models.QuerySet):
 class TagQuerySet(models.QuerySet):
     def popular(self):
         most_popular_tags = Tag.objects.annotate(num_posts=Count('posts')).order_by('-num_posts')
-        ids_and_posts = most_popular_tags.values_list('id', 'num_posts')
-        count_for_posts = dict(ids_and_posts)
-        for tag in most_popular_tags:
-            tag.num_posts = count_for_posts[tag.id]
         return most_popular_tags
+
+        # ids_and_posts = most_popular_tags.values_list('id', 'num_posts')
+        # count_for_posts = dict(ids_and_posts)
+        # for tag in most_popular_tags:
+        #     tag.num_posts = count_for_posts[tag.id]
+        # return most_popular_tags
 
 
 class Post(models.Model):
