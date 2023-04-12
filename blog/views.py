@@ -6,7 +6,7 @@ from django.db.models import Count
 
 def serialize_post_optimized(post):
     #tags = post.tags.all()
-    tags = Tag.objects.filter(posts=post).popular().fetch_with_posts()
+    tags = Tag.objects.filter(posts=post).popular()
     return {
         'title': post.title,
         'teaser_text': post.text[:200],
