@@ -1,8 +1,6 @@
 from django.shortcuts import render
-from django.db import connection
-from blog.models import Comment, Post, Tag, Count
-from django.db.models import Prefetch
-from django.shortcuts import get_object_or_404, get_list_or_404
+from blog.models import Post, Tag
+from django.shortcuts import get_object_or_404
 
 
 def serialize_post(post):
